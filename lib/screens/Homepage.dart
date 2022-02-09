@@ -30,7 +30,7 @@ class _HomepageState extends State<Homepage> {
     getMonthAndYear(currentTime);
     _prayer = APIService().getPrayerInfo(_month, _year);
 
-    Timer.periodic(Duration(minutes: 1), (timer) {
+    Timer.periodic(const Duration(minutes: 1), (timer) {
       setState(() {
         currentTime = DateTime.now();
       });
@@ -57,7 +57,7 @@ class _HomepageState extends State<Homepage> {
     var result11 = temp11 - temp21;
     var result12 = temp12 - temp22;
 
-    return resultString = result11.toString() + "." + result12.toString();
+    return resultString = result11.abs().toString() + "." + result12.toString();
   }
 
   waqtTextBuilder(waqt) {
@@ -151,12 +151,11 @@ class _HomepageState extends State<Homepage> {
     } else if (timenow > IshaTimeDouble && timenow < MidnightTimeDouble) {
       waqtName = "Isha";
       remainingTime = remainingTimes(MidnightTimeDouble, timenow);
-    } else if (timenow > ImsakTimeDouble && timenow < SunriseTimeDouble) {
-      waqtName = "Imsak";
-      remainingTime = remainingTimes(SunriseTimeDouble, timenow);
     } else {
-      waqtName = "Sleeping time";
-      remainingTime = remainingTimes(ImsakTimeDouble, timenow);
+      waqtName = "Tahajjot";
+      var time = (timenow - 12).toStringAsFixed(2);
+
+      remainingTime = remainingTimes(FajrTimeDouble, double.parse(time));
     }
     var remainingTimeStringArray = remainingTime.split(".");
     String remainingTimeString = remainingTimeStringArray[0] +
@@ -167,48 +166,130 @@ class _HomepageState extends State<Homepage> {
 
     return Column(
       children: [
-        const Text(
-          "Time For ",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        CircleAvatar(
-          backgroundColor: Colors.blueAccent,
-          radius: 40,
-          child: FittedBox(
-            child: Text(
-              waqtName,
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+        Stack(
+          // fit: StackFit.loose,
+          clipBehavior: Clip.hardEdge,
+
+          children: [
+            // const Text(
+            //   "Time For ",
+            //   style: TextStyle(
+            //     fontSize: 20,
+            //     color: Colors.white,
+            //   ),
+            // ),
+
+            const Positioned(
+              top: 40,
+              left: 65,
+              child: CircleAvatar(
+                backgroundColor: Colors.pink,
+                radius: 100,
               ),
             ),
-          ),
-        ),
-        const Divider(
-          thickness: 5,
+
+            Container(
+              width: MediaQuery.of(context).size.width * 1,
+              height: MediaQuery.of(context).size.height * .35,
+              child: const Image(
+                image: AssetImage('assets/mosque.png'),
+              ),
+            ),
+
+            Positioned(
+              top: 65,
+              left: 115,
+              child: Text(
+                waqtName,
+                style: const TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
         Text(
           "Time Left For : " + waqtName,
           style: const TextStyle(
-            fontSize: 15,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
-        CircleAvatar(
-          backgroundColor: Colors.blueAccent,
-          radius: 40,
-          child: Text(
-            remainingTimeString,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+        Text(
+          remainingTimeString,
+          style: const TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  buildCard(time, text) {
+    var onlyTime = time.split(" ");
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * .35,
+          height: MediaQuery.of(context).size.height * .20,
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Expanded(
+            child: Card(
+              color: Colors.pinkAccent,
+              margin: const EdgeInsets.only(left: 20),
+              elevation: 10,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    text,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20),
+                  ),
+                  Text(
+                    onlyTime[0],
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  buildNamazTimes(prayerInfo) {
+    var waqt = prayerInfo.timings;
+    return Flexible(
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: buildCard(waqt.Fajr.toString(), "Fajr"),
+          ),
+          // buildCard(waqt.Fajr.toString(), "Fajr"),
+          buildCard(waqt.Dhuhr.toString(), "Dhuhr"),
+          buildCard(waqt.Asr.toString(), "Asr"),
+          buildCard(waqt.Maghrib.toString(), "Maghrib"),
+          buildCard(waqt.Isha.toString(), "Isha"),
+        ],
+      ),
     );
   }
 
@@ -217,7 +298,8 @@ class _HomepageState extends State<Homepage> {
     return Scaffold(
       body: SafeArea(
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
           // crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Container(
@@ -249,22 +331,22 @@ class _HomepageState extends State<Homepage> {
                     color: Colors.blueGrey, fontWeight: FontWeight.bold),
               ),
             ),
-            Expanded(
-              flex: 1,
-              child: Container(
-                width: MediaQuery.of(context).size.width * .98,
-                clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Container(
+            Container(
+              width: MediaQuery.of(context).size.width * .98,
+              height: MediaQuery.of(context).size.height * .45,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
                       width: MediaQuery.of(context).size.width * .98,
-                      height: MediaQuery.of(context).size.height * 0.3,
+                      // height: MediaQuery.of(context).size.height * 0.5,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: Colors.purple,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -287,16 +369,29 @@ class _HomepageState extends State<Homepage> {
 
                                 return waqtTextBuilder(prayertimes.timings);
                               } else {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               }
                             },
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
+                    ),
+                  )
+                ],
               ),
+            ),
+            FutureBuilder<PrayerTimes>(
+              future: _prayer,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  int index = int.parse(DateFormat.d().format(currentTime)) - 1;
+                  var prayertimes = snapshot.data!.data[index];
+
+                  return buildNamazTimes(prayertimes);
+                } else {
+                  return const CircularProgressIndicator();
+                }
+              },
             ),
             IconButton(
               onPressed: () {},
