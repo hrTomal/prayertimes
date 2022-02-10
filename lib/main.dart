@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PrayerTimes',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.pink,
       ),
       home: Homepage(),
     );

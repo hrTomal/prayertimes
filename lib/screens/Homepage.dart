@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:prayertimes/api_services/prayerAPI.dart';
 import 'package:prayertimes/models/weather.dart';
-import 'package:slide_digital_clock/slide_digital_clock.dart';
+import 'package:prayertimes/widgets/CurrentWaqtDetails.dart';
+import 'package:prayertimes/widgets/_DigitalClock.dart';
+import 'package:prayertimes/widgets/WaqtCards.dart';
 
 class Homepage extends StatefulWidget {
   @override
@@ -66,6 +68,7 @@ class _HomepageState extends State<Homepage> {
     var _timeNowx = DateFormat.jm().format(currentTime);
     // var _timeNowx = "3:10 AM";
     var onlytime = _timeNowx.split(" ");
+    var AmPmNow = onlytime[1];
     var timenowVar = onlytime[0].split(":");
     double timenow = double.parse(timenowVar[0] + "." + timenowVar[1]);
 
@@ -135,10 +138,14 @@ class _HomepageState extends State<Homepage> {
       ImsakTimeDouble = ImsakTimeDouble - 12;
     }
 
-    if (timenow > FajrTimeDouble && timenow < SunriseTimeDouble) {
+    if (AmPmNow == "AM" &&
+        timenow > FajrTimeDouble &&
+        timenow < SunriseTimeDouble) {
       waqtName = "Fajr";
       remainingTime = remainingTimes(SunriseTimeDouble, timenow);
-    } else if (timenow > DhuhrTimeDouble && timenow < AsrTimeDouble) {
+    } else if (AmPmNow == "PM" &&
+        timenow > DhuhrTimeDouble &&
+        timenow < AsrTimeDouble) {
       waqtName = "Dhuhr";
       remainingTime = remainingTimes(AsrTimeDouble, timenow);
     } else if (timenow > AsrTimeDouble && timenow < MaghribTimeDouble) {
@@ -164,76 +171,17 @@ class _HomepageState extends State<Homepage> {
         remainingTimeStringArray[1] +
         "M";
 
-    return Column(
-      children: [
-        Stack(
-          // fit: StackFit.loose,
-          clipBehavior: Clip.hardEdge,
-
-          children: [
-            // const Text(
-            //   "Time For ",
-            //   style: TextStyle(
-            //     fontSize: 20,
-            //     color: Colors.white,
-            //   ),
-            // ),
-
-            const Positioned(
-              top: 40,
-              left: 65,
-              child: CircleAvatar(
-                backgroundColor: Colors.pink,
-                radius: 100,
-              ),
-            ),
-
-            Container(
-              width: MediaQuery.of(context).size.width * 1,
-              height: MediaQuery.of(context).size.height * .35,
-              child: const Image(
-                image: AssetImage('assets/mosque.png'),
-              ),
-            ),
-
-            Positioned(
-              top: 65,
-              left: 115,
-              child: Text(
-                waqtName,
-                style: const TextStyle(
-                  fontSize: 35,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Text(
-          "Time Left For : " + waqtName,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          remainingTimeString,
-          style: const TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
+    return CurrentWaqtDetails(
+        context: context,
+        waqtName: waqtName,
+        remainingTimeString: remainingTimeString);
   }
 
   buildCard(time, text) {
     var onlyTime = time.split(" ");
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: MediaQuery.of(context).size.width * .35,
@@ -244,7 +192,7 @@ class _HomepageState extends State<Homepage> {
           ),
           child: Expanded(
             child: Card(
-              color: Colors.pinkAccent,
+              color: Colors.pink,
               margin: const EdgeInsets.only(left: 20),
               elevation: 10,
               child: Column(
@@ -279,10 +227,8 @@ class _HomepageState extends State<Homepage> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: buildCard(waqt.Fajr.toString(), "Fajr"),
-          ),
+          buildCard(waqt.Fajr.toString(), "Fajr"),
+
           // buildCard(waqt.Fajr.toString(), "Fajr"),
           buildCard(waqt.Dhuhr.toString(), "Dhuhr"),
           buildCard(waqt.Asr.toString(), "Asr"),
@@ -297,109 +243,65 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          // crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(
-                top: 30,
-                left: 30,
-                right: 30,
-              ),
-              padding: const EdgeInsets.only(
-                top: 5,
-                bottom: 5,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: DigitalClock(
-                is24HourTimeFormat: false,
-                digitAnimationStyle: Curves.bounceInOut,
-                areaDecoration: const BoxDecoration(
-                  color: Colors.transparent,
-                ),
-                hourMinuteDigitTextStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 50,
-                ),
-                amPmDigitTextStyle: const TextStyle(
-                    color: Colors.blueGrey, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Container(
-              width: MediaQuery.of(context).size.width * .98,
-              height: MediaQuery.of(context).size.height * .45,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * .98,
-                      // height: MediaQuery.of(context).size.height * 0.5,
+        child: Padding(
+          padding:
+              const EdgeInsets.only(left: 30, right: 30, top: 15, bottom: 15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const DigitalClockX(),
+              Container(
+                width: MediaQuery.of(context).size.width * .98,
+                child: Column(
+                  children: [
+                    Container(
                       decoration: BoxDecoration(
-                        color: Colors.purple,
                         shape: BoxShape.rectangle,
-                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.purple,
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       margin: const EdgeInsets.only(
-                        top: 30,
-                        left: 30,
-                        right: 30,
+                        top: 10,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          FutureBuilder<PrayerTimes>(
-                            future: _prayer,
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                int index = int.parse(
-                                        DateFormat.d().format(currentTime)) -
+                      child: FutureBuilder<PrayerTimes>(
+                        future: _prayer,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            int index =
+                                int.parse(DateFormat.d().format(currentTime)) -
                                     1;
-                                var prayertimes = snapshot.data!.data[index];
+                            var prayertimes = snapshot.data!.data[index];
 
-                                return waqtTextBuilder(prayertimes.timings);
-                              } else {
-                                return const CircularProgressIndicator();
-                              }
-                            },
-                          ),
-                        ],
+                            return waqtTextBuilder(prayertimes.timings);
+                          } else {
+                            return const CircularProgressIndicator();
+                          }
+                        },
                       ),
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
-            ),
-            FutureBuilder<PrayerTimes>(
-              future: _prayer,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  int index = int.parse(DateFormat.d().format(currentTime)) - 1;
-                  var prayertimes = snapshot.data!.data[index];
+              const SizedBox(
+                height: 10,
+                width: 10,
+              ),
+              FutureBuilder<PrayerTimes>(
+                future: _prayer,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    int index =
+                        int.parse(DateFormat.d().format(currentTime)) - 1;
+                    var prayertimes = snapshot.data!.data[index];
 
-                  return buildNamazTimes(prayertimes);
-                } else {
-                  return const CircularProgressIndicator();
-                }
-              },
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(
-                Icons.calendar_view_month,
+                    return buildNamazTimes(prayertimes);
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
